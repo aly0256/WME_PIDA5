@@ -436,7 +436,7 @@ Module Declaraciones
     End Sub
 
     Public Function ListaSucursales() As strucSucursales()
-        Dim Sucursales(1) As strucSucursales
+        Dim Sucursales(2) As strucSucursales
 
         '===git commit test
 
@@ -454,11 +454,11 @@ Module Declaraciones
         Sucursales(1).def = False
 
         '====Local pruebas
-        'Sucursales(0).nombre = "WME"
-        'Sucursales(0).conexion = "Data Source=PIDA-AO\WME_SQL2019"
-        'Sucursales(0).clave = "soporte"
-        'Sucursales(0).usuario = "sa"
-        'Sucursales(0).def = True
+        Sucursales(2).nombre = "WME - LOCAL IA CENTER"
+        Sucursales(2).conexion = "Data Source=PIDA-AO\WME_SQL2019"
+        Sucursales(2).clave = "soporte"
+        Sucursales(2).usuario = "sa"
+        Sucursales(2).def = False
 
         Return Sucursales
     End Function
