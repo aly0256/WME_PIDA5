@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PublishUrlHistory>\\pida-fs1\PIDA-Files\Wollsdorf\Pida5\PIDA5\|\\pida-fs1\PIDA-Files\Wollsdorf\Pida5\PIDA5\Application Files\|\\Pida-fs01\Wollsdorf\Pida5\PIDA5\|\\pida-fs01\BRPQueretaro\Pida5\publish\|\\pida-fs01\BRPQueretaro\Pida5\Local%28publish%29\</PublishUrlHistory>
+    <InstallUrlHistory>\\LEOSMS006\Pida\Pida5\|\\MXQTVAS24\pida\pida5\|\\pida-fs01\BRPQueretaro\Pida5\Local%28instalacion%29\|\\pida-fs01\BRPQueretaro\prueba instalacion\|\\mxjuvas04\pida\pida5\</InstallUrlHistory>
+    <SupportUrlHistory />
+    <UpdateUrlHistory>\\LEOSMS006\Pida\Pida5\|\\MXQTVAS24\pida\pida5\|\\pida-fs01\BRPQueretaro\Pida5\Local%28instalacion%29\|\\pida-fs01\BRPQueretaro\prueba instalacion\|\\Mxjuvas04\pida\PIDA5\</UpdateUrlHistory>
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>en-US</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
+    <ProjectView>ProjectFiles</ProjectView>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableSecurityDebugging>false</EnableSecurityDebugging>
+  </PropertyGroup>
+</Project>
