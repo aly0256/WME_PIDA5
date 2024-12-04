@@ -438,6 +438,8 @@ Module Declaraciones
     Public Function ListaSucursales() As strucSucursales()
         Dim Sucursales(1) As strucSucursales
 
+        '===git commit test
+
         '====Servidor Real
         Sucursales(0).nombre = "WME"
         Sucursales(0).conexion = "Data Source=LEOSMS006\SQLEXPRESS"
