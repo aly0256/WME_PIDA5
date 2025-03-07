@@ -177,6 +177,7 @@ Public Class frmCalcNom
     Dim IMPEST As Double = 0.0 ' Impuesto estatal
 
 
+
     '*******Ends 
 
     Private Sub frmCalcNom_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -1420,12 +1421,16 @@ calcAsim2:
                             GoTo SaltaCalcInfo
                         End If
 
+                        SALINF = 0 ' Saldo pendiente del infonavit
                         If (tipo_cred_info <> "" And cuota_cred_info <> 0.0) Then
                             DESINF = DESINF + CalcInfonavit(reloj, tipo_cred_info, cuota_cred_info, tipo_nomina, tipo_periodo, UMA, DIASPA, UMI, integrado)
                         End If
 SaltaCalcInfo:
                         '-- insertar en movimientos_pro
                         If (DESINF <> 0) Then puente(anio_empl, per_empl, reloj, DESINF, tipo_nomina, tipo_periodo, "DESINF", dtConceptos)
+
+                        '===Insertar en movimientos_pro el saldo pendiente de infonavit
+                        If (SALINF <> 0) Then puente(anio_empl, per_empl, reloj, SALINF, tipo_nomina, tipo_periodo, "SALINF", dtConceptos)
 
                         '*********************SEGVIV - Seguro de la vivienda
                         'NOTA: Solo descontar una vez al bimestre cuando en INFONAVIT.cobro_segv = 1 y cuando es un nuevo credito de INFONAVIT.cobro_segv = True

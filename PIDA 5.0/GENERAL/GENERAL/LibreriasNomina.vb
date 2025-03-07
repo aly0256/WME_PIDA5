@@ -706,8 +706,58 @@ salir:
         End Try
     End Function
 
+    '=====Función en base al cálculo anterior
+    'Public Function CalcInfonavit(ByRef reloj As String, tipo_cred As String, factorDesc As Double, tipoNom As String, tipoPer As String, uma As Double, diasPag As Double, umi As Double, integr As Double) As Double
+    '    Dim Res As Double = 0.0
+    '    If (diasPag = 0) Then Return Res
+    '    Try
+    '        Dim basePorc As Double = 0.0
+    '        Dim topePorc As Double = 0.0
+    '        Dim numSemDesc As Double = 0.0
+    '        Dim DescMensVsm As Double = 0.0
+    '        Dim DescInfon As Double = 0.0
+
+    '        '  If (tipoPer = "S") Then numSemDesc = 4  
+    '        If totSemDescInfo = 0 Then totSemDescInfo = 4
+    '        If (tipoPer = "S") Then numSemDesc = totSemDescInfo
+    '        If (tipoPer = "C") Then numSemDesc = 2
+
+    '        If (tipo_cred = 1) Then ' Porcentaje
+    '            basePorc = integr * diasPag
+    '            topePorc = 25 * uma * diasPag
+    '            If (basePorc >= topePorc) Then basePorc = topePorc ' Topamos esa base 
+    '            DescInfon = basePorc * (factorDesc / 100)
+    '            Res = DescInfon
+    '            Return Res
+    '        End If
+
+    '        If (tipo_cred = 2) Then ' Cuota Fija
+    '            '    DescInfon = factorDesc / numSemDesc
+    '            DescInfon = (factorDesc / 30.4) * diasPag
+    '            Res = DescInfon
+    '            Return Res
+    '        End If
+
+    '        If (tipo_cred = 3) Then ' VSM
+    '            DescMensVsm = factorDesc * umi
+    '            '     DescInfon = DescMensVsm / numSemDesc
+    '            DescInfon = (DescMensVsm / 30.4) * diasPag
+    '            Res = DescInfon
+    '            Return Res
+    '        End If
+
+
+    '        Return Res
+    '    Catch ex As Exception
+    '        Return Res
+    '    End Try
+    'End Function
+
+
+    '===Función en base al cálculo nuevo : 2025-03-07
+    '===Cambiar de 30.4 a 30 días, y guardar el saldo que debe en una variable para reflejar el saldo pendiente en SALINF
     Public Function CalcInfonavit(ByRef reloj As String, tipo_cred As String, factorDesc As Double, tipoNom As String, tipoPer As String, uma As Double, diasPag As Double, umi As Double, integr As Double) As Double
-        Dim Res As Double = 0.0
+        Dim Res As Double = 0.0, dias_periodo As Double = 0.0
         If (diasPag = 0) Then Return Res
         Try
             Dim basePorc As Double = 0.0
@@ -716,31 +766,69 @@ salir:
             Dim DescMensVsm As Double = 0.0
             Dim DescInfon As Double = 0.0
 
+            Dim DescInfonTot As Double = 0.0
+
             '  If (tipoPer = "S") Then numSemDesc = 4  
             If totSemDescInfo = 0 Then totSemDescInfo = 4
             If (tipoPer = "S") Then numSemDesc = totSemDescInfo
             If (tipoPer = "C") Then numSemDesc = 2
 
+            '===Dias del periodo:
+            If (tipoPer = "S") Then dias_periodo = 7.0
+            If (tipoPer = "C") Then dias_periodo = 14.0
+
             If (tipo_cred = 1) Then ' Porcentaje
+
+                '===Sacar descuento bruto de acuerdo a los días del periodo (lo completo que debiera ser)
+
+                basePorc = integr * dias_periodo
+                topePorc = 25 * uma * dias_periodo
+                If (basePorc >= topePorc) Then basePorc = topePorc ' Topamos esa base 
+                DescInfonTot = basePorc * (factorDesc / 100)
+
+                '==Sacar descuento real en base a los dias pagados
                 basePorc = integr * diasPag
                 topePorc = 25 * uma * diasPag
                 If (basePorc >= topePorc) Then basePorc = topePorc ' Topamos esa base 
                 DescInfon = basePorc * (factorDesc / 100)
+
+                '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                SALINF = DescInfonTot - DescInfon
+                If (SALINF <= 0) Then SALINF = 0.0
+
                 Res = DescInfon
                 Return Res
             End If
 
             If (tipo_cred = 2) Then ' Cuota Fija
-                '    DescInfon = factorDesc / numSemDesc
-                DescInfon = (factorDesc / 30.4) * diasPag
+
+                '==TotalEn base a los dias periodos
+                DescInfonTot = (factorDesc / 30) * dias_periodo
+
+                '==Realmente descontado en el periodo
+                DescInfon = (factorDesc / 30) * diasPag
+
+                '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                SALINF = DescInfonTot - DescInfon
+                If (SALINF <= 0) Then SALINF = 0.0
+
                 Res = DescInfon
                 Return Res
             End If
 
             If (tipo_cred = 3) Then ' VSM
                 DescMensVsm = factorDesc * umi
-                '     DescInfon = DescMensVsm / numSemDesc
-                DescInfon = (DescMensVsm / 30.4) * diasPag
+
+                '==TotalEn base a los dias periodos
+                DescInfonTot = (DescMensVsm / 30) * dias_periodo
+
+                '==Realmento lo descontado
+                DescInfon = (DescMensVsm / 30) * diasPag
+
+                '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                SALINF = DescInfonTot - DescInfon
+                If (SALINF <= 0) Then SALINF = 0.0
+
                 Res = DescInfon
                 Return Res
             End If
@@ -751,7 +839,6 @@ salir:
             Return Res
         End Try
     End Function
-
     '--Obtener y actualizar en el mtro de deduc lo referente al saldo del fondo de ahorro (SAFAHE y SAFAHC)
     Public Function GetSaldosFah(ByVal _anio As String, ByVal _periodo As String, ByVal _reloj As String, abono As Double) As Integer
         Dim dtExistSaldo As New DataTable

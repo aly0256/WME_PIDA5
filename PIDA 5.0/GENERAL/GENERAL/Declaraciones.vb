@@ -185,6 +185,7 @@ Module Declaraciones
 
     '--- PARAMETROS de cálculo para el PTU
     Public dias_ptu As Double = 0.0, cant_repartir As Double = 0.0, sd_max As Double = 0.0
+    Public SALINF As Double = 0.0 ' Saldo infonavit pendiente
 
     '******************************************
     'Private trd As Thread
