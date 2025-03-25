@@ -758,7 +758,7 @@ salir:
     '===Cambiar de 30.4 a 30 días, y guardar el saldo que debe en una variable para reflejar el saldo pendiente en SALINF
     Public Function CalcInfonavit(ByRef reloj As String, tipo_cred As String, factorDesc As Double, tipoNom As String, tipoPer As String, uma As Double, diasPag As Double, umi As Double, integr As Double) As Double
         Dim Res As Double = 0.0, dias_periodo As Double = 0.0
-        If (diasPag = 0) Then Return Res
+        ' If (diasPag = 0) Then Return Res
         Try
             Dim basePorc As Double = 0.0
             Dim topePorc As Double = 0.0
@@ -793,6 +793,7 @@ salir:
                 DescInfon = basePorc * (factorDesc / 100)
 
                 '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                If diasPag = 0 Then DescInfon = 0.0
                 SALINF = DescInfonTot - DescInfon
                 If (SALINF <= 0) Then SALINF = 0.0
 
@@ -809,6 +810,7 @@ salir:
                 DescInfon = (factorDesc / 30) * diasPag
 
                 '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                If diasPag = 0 Then DescInfon = 0.0
                 SALINF = DescInfonTot - DescInfon
                 If (SALINF <= 0) Then SALINF = 0.0
 
@@ -826,6 +828,7 @@ salir:
                 DescInfon = (DescMensVsm / 30) * diasPag
 
                 '===Sacar diferencia entre lo total y lo real descontado y toparlo a 0 en caso de ser negativo
+                If diasPag = 0 Then DescInfon = 0.0
                 SALINF = DescInfonTot - DescInfon
                 If (SALINF <= 0) Then SALINF = 0.0
 

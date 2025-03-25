@@ -624,6 +624,9 @@
                     SaldosDescuentos(dtDatos, dtInformacion)
                 End If
 
+            ElseIf Reporte = "Reporte amortizacion infonavit" Then
+                ReporteAmortizacionInfonavit(dtDatos, dtInformacion)
+
                 '********* CAPACITACION ***********************************************
             ElseIf Reporte = "Licencia para montacargas" Then
                 LicenciaMontacargas(dtDatos, dtInformacion)

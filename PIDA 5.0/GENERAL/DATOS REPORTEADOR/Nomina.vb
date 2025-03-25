@@ -12476,4 +12476,169 @@ Saltar1:
         End Try
     End Function
 
+
+    ''' <summary>
+    ''' 'Método para generar reporte de amortización del infonavit
+    ''' </summary>
+    ''' <remarks></remarks>
+    ''' 
+    Public Sub ReporteAmortizacionInfonavit(ByRef dtDatos As DataTable, ByVal dtInformacion As DataTable)
+        Try
+
+            '=====DEFINICION DE VARIABLES
+            Dim ano As String = "", per As String = "", query As String = ""
+            Dim RELOJ As String = "", NOMBRES As String = "", VALOR_DESCUENTO As Double = 0.0, MENSUAL As Double = 0.0, DIAS As Double = 0.0, AMORT_X_DIA As Double = 0.0
+            Dim DIAS_BRUTOS As Double = 0.0, DIAS_AUS As Double = 0.0, DIAS_INCAP As Double = 0.0, DIAS_REAL As Double = 0.0, AMORT_BRUTA As Double = 0.0, AMORT_REAL As Double = 0.0, SALDO_PEND As Double = 0.0
+            Dim dtInfonavit As New DataTable, dtDatosCias As New DataTable, cod_comp As String = "", UMA As Double = 0.0, UMI As Double = 0.0
+            Dim tipo_periodo As String = ""
+
+            Try : ano = dtInformacion.Rows(0).Item("ano").ToString.Trim : Catch ex As Exception : ano = "" : End Try
+            Try : per = dtInformacion.Rows(0).Item("periodo").ToString.Trim : Catch ex As Exception : per = "" : End Try
+            Try : cod_comp = dtInformacion.Rows(0).Item("cod_comp").ToString.Trim : Catch ex As Exception : cod_comp = "" : End Try
+            Try : tipo_periodo = dtInformacion.Rows(0).Item("tipo_periodo").ToString.Trim : Catch ex As Exception : tipo_periodo = "" : End Try
+
+            If tipo_periodo = "S" Then DIAS_BRUTOS = 7 Else If tipo_periodo = "C" Then DIAS_BRUTOS = 14
+
+            query = "select * from personal.dbo.infonavit where  isnull(activo,0)=1 AND ISNULL(suspension,'')='' order by reloj asc"
+            dtInfonavit = sqlExecute(query, "PERSONAL")
+
+            '===Obtener UMI y UMA
+            dtDatosCias = sqlExecute("select * from PERSONAL.dbo.cias  WHERE COD_COMP='" & cod_comp & "'", "PERSONAL")
+            If Not dtDatosCias.Columns.Contains("Error") And dtDatosCias.Rows.Count > 0 Then
+                Try : UMA = Double.Parse(dtDatosCias.Rows(0).Item("UMA")) : Catch ex As Exception : UMA = 0.0 : End Try
+                Try : UMI = Double.Parse(dtDatosCias.Rows(0).Item("UMI")) : Catch ex As Exception : UMI = 0.0 : End Try
+            End If
+
+            '===Obtener aus e Incap
+            Dim dtPeriodos As New DataTable, f_ini As String = "", f_fin As String = "", dtAusIncap As New DataTable
+            query = " select * from ta.dbo.periodos where ano+periodo='" & ano & per & "'"
+            dtPeriodos = sqlExecute(query, "TA")
+            If Not dtPeriodos.Columns.Contains("Error") And dtPeriodos.Rows.Count > 0 Then
+                Try : f_ini = FechaSQL(dtPeriodos.Rows(0).Item("fecha_ini")) : Catch ex As Exception : f_ini = "" : End Try
+                Try : f_fin = FechaSQL(dtPeriodos.Rows(0).Item("fecha_fin")) : Catch ex As Exception : f_fin = "" : End Try
+
+                query = "select a.RELOJ,a.FECHA,a.TIPO_AUS,t.TIPO_NATURALEZA from ausentismo a left join tipo_ausentismo t " & _
+                    "on a.TIPO_AUS=t.TIPO_AUS " & _
+                    "where t.TIPO_NATURALEZA in ('A','I') and a.FECHA>='" & f_ini & "' and a.FECHA<='" & f_fin & "'"
+
+                dtAusIncap = sqlExecute(query, "TA")
+            End If
+
+
+            If Not dtInformacion.Columns.Contains("Error") And dtInformacion.Rows.Count > 0 Then
+
+                '====Definicion de columnas del datatable
+                dtDatos = New DataTable
+                If Not dtDatos.Columns.Contains("RELOJ") Then dtDatos.Columns.Add("RELOJ", Type.GetType("System.String"))
+                If Not dtDatos.Columns.Contains("NOMBRES") Then dtDatos.Columns.Add("NOMBRES", Type.GetType("System.String"))
+                If Not dtDatos.Columns.Contains("VALOR_DESCUENTO") Then dtDatos.Columns.Add("VALOR_DESCUENTO", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("MENSUAL") Then dtDatos.Columns.Add("MENSUAL", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("DIAS") Then dtDatos.Columns.Add("DIAS", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("AMORT_X_DIA") Then dtDatos.Columns.Add("AMORT_X_DIA", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("DIAS_BRUTOS") Then dtDatos.Columns.Add("DIAS_BRUTOS", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("DIAS_AUS") Then dtDatos.Columns.Add("DIAS_AUS", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("DIAS_INCAP") Then dtDatos.Columns.Add("DIAS_INCAP", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("DIAS_REAL") Then dtDatos.Columns.Add("DIAS_REAL", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("AMORT_BRUTA") Then dtDatos.Columns.Add("AMORT_BRUTA", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("AMORT_REAL") Then dtDatos.Columns.Add("AMORT_REAL", Type.GetType("System.Double"))
+                If Not dtDatos.Columns.Contains("SALDO_PEND") Then dtDatos.Columns.Add("SALDO_PEND", Type.GetType("System.Double"))
+
+
+
+
+                For Each dr As DataRow In dtInformacion.Rows
+                    Dim tiene_desc_infonavit As Boolean = False
+                    Try : RELOJ = dr("reloj").ToString.Trim : Catch ex As Exception : RELOJ = "" : End Try
+                    Try : NOMBRES = dr("nombres").ToString.Trim : Catch ex As Exception : NOMBRES = "" : End Try
+
+                    '===Obtener columna MENSUAL
+                    MENSUAL = 0.0
+                    Dim tipo_cred As String = "", cuota_cred As Double = 0.0, integradro As Double = 0.0
+                    'tipo_cred = 1; mensual =  (integr * dias_periodo), topando a  (25 * UMA)
+                    'tipo_cred = 2; mensual = cuota_cred
+                    'tipo_cred = 3; mensual = cuota_cred * UMI
+                    If (dtInfonavit.Select("reloj='" & RELOJ & "'").Count > 0) Then
+                        Dim itInfo = (From x In dtInfonavit.Rows Where x("RELOJ").ToString.Trim = RELOJ).ToList()
+                        If itInfo.Count > 0 Then
+                            tiene_desc_infonavit = True
+                            Try : tipo_cred = itInfo.First()("tipo_cred").ToString.Trim : Catch ex As Exception : tipo_cred = "" : End Try
+                            Try : cuota_cred = Double.Parse(itInfo.First()("cuota_cred")) : Catch ex As Exception : cuota_cred = 0.0 : End Try
+                            VALOR_DESCUENTO = cuota_cred
+                        End If
+
+                        Select Case tipo_cred
+                            Case "1" ' PORC
+                                Dim dtIntegrado As DataTable = sqlExecute("select INTEGRADO from PERSONAL.dbo.personal where reloj='" & RELOJ & "'")
+                                If dtIntegrado.Rows.Count > 0 Then Try : integradro = Double.Parse(dtIntegrado.Rows(0).Item("INTEGRADO")) : Catch ex As Exception : integradro = 0.0 : End Try
+                                Dim baseTope = Math.Round(25 * UMA, 2)
+                                Dim descInfo = Math.Round(integradro * DIAS_BRUTOS, 2)
+                                Dim descInfoFinal As Double = 0.0
+                                If descInfo >= baseTope Then descInfoFinal = baseTope Else descInfoFinal = descInfo
+
+                                MENSUAL = descInfoFinal
+
+                            Case "2" ' CUOTA FIJA
+
+                                MENSUAL = cuota_cred
+                            Case "3" ' VSM
+
+                                MENSUAL = Math.Round(cuota_cred * UMI, 2)
+                        End Select
+
+                        '====Columna DIAS
+                        DIAS = 30 ' Queda fijo para todos que es MENSUAL
+
+                        '=====Columna Amort x Dias
+                        AMORT_X_DIA = 0.0
+                        AMORT_X_DIA = Math.Round(MENSUAL / DIAS, 2)
+
+                        '====Columna dias ausentismo
+                        DIAS_AUS = 0.0
+                        Dim itDiasAus = (From a In dtAusIncap.Rows Where a("reloj").ToString.Trim = RELOJ And a("tipo_aus").ToString.Trim = "FI").ToList()
+                        If itDiasAus.Count > 0 Then DIAS_AUS = itDiasAus.Count
+
+                        '====Columna de incapacidades
+                        DIAS_INCAP = 0.0
+                        Dim itDiasInca = (From i In dtAusIncap.Rows Where i("reloj").ToString.Trim = RELOJ And i("tipo_naturaleza").ToString.Trim = "I").ToList()
+                        If itDiasInca.Count > 0 Then DIAS_INCAP = itDiasInca.Count
+
+                        '===Columna dias real
+                        DIAS_REAL = 0.0
+                        DIAS_REAL = DIAS_BRUTOS - DIAS_AUS - DIAS_INCAP
+
+                        '===Columna de Amortización bruta
+                        AMORT_BRUTA = 0.0
+                        AMORT_BRUTA = DIAS_BRUTOS * AMORT_X_DIA
+
+                        '===Columna de Amortización real (DESINF)
+                        AMORT_REAL = 0.0
+                        Try : AMORT_REAL = Double.Parse(dr("DESINF")) : Catch ex As Exception : AMORT_REAL = 0.0 : End Try
+
+                        '===Columna de saldo pendiente (SALINF)
+                        SALDO_PEND = 0.0
+                        Try : SALDO_PEND = Double.Parse(dr("SALINF")) : Catch ex As Exception : SALDO_PEND = 0.0 : End Try
+
+
+
+                    End If
+
+            '==Solo los que tengan desc de infonavit
+            If tiene_desc_infonavit Then
+                dtDatos.Rows.Add({RELOJ, NOMBRES, VALOR_DESCUENTO, MENSUAL, DIAS, AMORT_X_DIA, DIAS_BRUTOS, DIAS_AUS, DIAS_INCAP, DIAS_REAL, AMORT_BRUTA, AMORT_REAL, SALDO_PEND
+                             })
+            End If
+
+                Next
+            Else
+                MessageBox.Show("No hay información a mostrar en el periodo seleccionado", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Exit Sub
+            End If
+
+
+        Catch ex As Exception
+            MessageBox.Show("Ha ocurrido un error durante la generación del reporte.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            ErrorLog(Usuario, System.Reflection.MethodBase.GetCurrentMethod.Name(), "Rep.Amortizacion Infonavit", ex.HResult, ex.Message)
+        End Try
+    End Sub
+
 End Module
