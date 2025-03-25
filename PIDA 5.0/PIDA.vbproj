@@ -26,9 +26,9 @@
     <InstallUrl>\\LEOSMS006\Pida\Pida5\</InstallUrl>
     <UpdateUrl>\\LEOSMS006\Pida\Pida5\</UpdateUrl>
     <PublisherName>PIDA</PublisherName>
-    <MinimumRequiredVersion>5.0.1.2060</MinimumRequiredVersion>
-    <ApplicationRevision>2060</ApplicationRevision>
-    <ApplicationVersion>5.0.1.2060</ApplicationVersion>
+    <MinimumRequiredVersion>5.0.1.2061</MinimumRequiredVersion>
+    <ApplicationRevision>2061</ApplicationRevision>
+    <ApplicationVersion>5.0.1.2061</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
